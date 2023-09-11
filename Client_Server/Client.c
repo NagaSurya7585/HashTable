@@ -70,6 +70,5 @@ int main() {
     // Close the client socket
     closesocket(clientSock);
     WSACleanup(); // Cleanup Winsock
-
     return 0;
 }
