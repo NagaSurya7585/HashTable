@@ -67,8 +67,8 @@ int main() {
         Sleep(1000); // Wait for 1 second before sending the next ping (use Sleep for Windows)
     }
 
-    
+    // Close the client socket
     closesocket(clientSock);
-    WSACleanup(); 
+    WSACleanup(); // Cleanup Winsock
     return 0;
 }
