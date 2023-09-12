@@ -3,13 +3,13 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <string.h>
+ 
+#define QUEUE_SIZE 10                    //The maximum size of the shared queue.
+#define NUM_receiverS 5                  // The number of receiver threads.
+#define NUM_MESSAGES 10                  // The number of messages each sender thread will produce.
+#define MESSAGE_INTERVAL_US 200000       // The interval between sending messages in microseconds.
 
-#define QUEUE_SIZE 10
-#define NUM_receiverS 5
-#define NUM_MESSAGES 10
-#define MESSAGE_INTERVAL_US 200000
-
-
+// Structure to represent the shared queue
 typedef struct {
     char* messages[QUEUE_SIZE];
     int front;
@@ -21,7 +21,11 @@ typedef struct {
     int sender; 
 } SharedQueue;
 
+// This section defines a structure SharedQueue to represent the shared queue used by sender and receiver threads. It contains fields such as an array of messages, front and rear pointers, a count of messages in the queue, mutexes, condition variables for synchronization, and a flag to indicate the sender thread status.
 
+
+
+// Function to initialize the shared queue
 void initQueue(SharedQueue* queue) {
     queue->front = 0;
     queue->rear = -1;
@@ -32,8 +36,11 @@ void initQueue(SharedQueue* queue) {
     pthread_cond_init(&queue->not_full, NULL);
 }
 
+// initQueue initializes the SharedQueue structure by setting initial values for its fields and initializing the associated mutexes and condition variables.
 
-void enqueue(SharedQueue* queue, const char* message) {
+
+// Function to add a message to the queue
+void add_Mssg(SharedQueue* queue, const char* message) {
     pthread_mutex_lock(&queue->mutex);
     
 
@@ -41,6 +48,8 @@ void enqueue(SharedQueue* queue, const char* message) {
         pthread_cond_wait(&queue->not_full, &queue->mutex);
     }
 
+    // add_Mssg adds a message to the queue. It locks the mutex, checks if the queue is full or the sender has finished sending, and waits using pthread_cond_wait if the conditions are not met.
+    
     if (!queue->sender) { 
         queue->rear = (queue->rear + 1) % QUEUE_SIZE;
         queue->messages[queue->rear] = strdup(message);
@@ -53,14 +62,21 @@ void enqueue(SharedQueue* queue, const char* message) {
     pthread_mutex_unlock(&queue->mutex);
 }
 
+// If the sender is still active, enqueue adds the message to the queue, updates the rear pointer, increments the message count, signals that the queue is not empty, and unlocks the mutex.
 
-char* dequeue(SharedQueue* queue) {
+
+
+// Function to remove and return a message from the queue
+char* remove_Mssg(SharedQueue* queue) {
     pthread_mutex_lock(&queue->mutex);
 
     
     while (queue->count == 0 && !queue->sender) {
         pthread_cond_wait(&queue->not_empty, &queue->mutex);
     }
+
+    //  retrieves a message from the queue. It locks the mutex, checks if the queue is empty and the sender has finished, and waits if the conditions are not met.
+
 
     char* message = NULL;
     if (queue->count > 0) {
@@ -77,13 +93,16 @@ char* dequeue(SharedQueue* queue) {
     return message;
 }
 
+// If there are messages in the queue, dequeue retrieves and returns the message, updates the front pointer, decrements the message count, signals that the queue is not full, unlocks the mutex, and returns the message.
 
+
+// Function to simulate the sender adding messages
 void* sender(void* arg) {
     SharedQueue* queue = (SharedQueue*)arg;
     for (int i = 0; i < NUM_MESSAGES; i++) {
         char message[20];
         snprintf(message, sizeof(message), "Message %d", i + 1);
-        enqueue(queue, message);
+        add_Mssg(queue, message);
         usleep(MESSAGE_INTERVAL_US);
     }
 
@@ -98,11 +117,14 @@ void* sender(void* arg) {
     pthread_exit(NULL);
 }
 
+// sender is a thread function that simulates a sender. It enqueues messages in a loop with a specified interval and signals when it has finished sending.
 
+
+// Function to simulate the receivers consuming messages
 void* receiver(void* arg) {
     SharedQueue* queue = (SharedQueue*)arg;
     while (1) {
-        char* message = dequeue(queue);
+        char* message = remove_Mssg(queue);
         if (!message) {
          
             break;
@@ -113,7 +135,10 @@ void* receiver(void* arg) {
     pthread_exit(NULL);
 }
 
-int main() {
+// receiver is a thread function that simulates a receiver. It dequeues messages in a loop and processes them until the sender is finished. It prints the received message and frees the associated memory.
+
+int main()
+{
     SharedQueue queue;
     initQueue(&queue);
 
@@ -136,3 +161,5 @@ int main() {
 
     return 0;
 }
+
+// main initializes the shared queue, creates a sender thread, and multiple receiver threads. It joins the threads after they finish and performs cleanup by destroying mutexes and condition variables.
