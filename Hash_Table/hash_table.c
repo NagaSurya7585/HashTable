@@ -28,7 +28,7 @@ int hash(const char* key) {
     return index % TABLE_SIZE;
 }
 
-
+// Function to create a key-value pair
 struct KeyValue* createKeyValue(const char* key, const char* value) {
     struct KeyValue* KY_value = (struct KeyValue*)malloc(sizeof(struct KeyValue));
     if (KY_value) {
@@ -39,7 +39,7 @@ struct KeyValue* createKeyValue(const char* key, const char* value) {
     return KY_value;
 }
 
- 
+ // Function to inserting_Key a key-value pair into the hash table
 void inserting_Key(struct Hash_table* h_table, const char* key, const char* value) {
     int index = hash(key);
     struct KeyValue* KY_value = createKeyValue(key, value);
@@ -51,7 +51,7 @@ void inserting_Key(struct Hash_table* h_table, const char* key, const char* valu
     }
 }
 
-
+// Function to retrieve a value by key from the hash table
 const char* get(const struct Hash_table* h_table, const char* key) {
     int index = hash(key);
     struct KeyValue* KY_value = h_table->table[index];
@@ -66,7 +66,7 @@ const char* get(const struct Hash_table* h_table, const char* key) {
     return "Key not found";
 }
 
-
+// Function to remove a key-value pair from the hash table
 void removing_Key(struct Hash_table* h_table, const char* key) {
     int index = hash(key);
     struct KeyValue* current = h_table->table[index];
@@ -90,7 +90,7 @@ void removing_Key(struct Hash_table* h_table, const char* key) {
     }
 }
 
-
+// Function to resize the hash table
 void resize(struct Hash_table* h_table) {
     struct KeyValue* newTable[TABLE_SIZE * 2];
     for (int i = 0; i < TABLE_SIZE * 2; i++) {
