@@ -1,74 +1,40 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <winsock2.h> // Include Windows socket header
-#include <ws2tcpip.h> // Include Windows socket header
-#include <unistd.h> // Used for sleep on Windows
+#include"Header.h"
+int main(int argc,char **argv)
+{
+if(argc!=3)
+{
+printf("usage: ./client server_port
+server_ip_address\n");
+return 0;
+}
 
-#define SERVER_IP "127.0.0.1"
-#define PORT 8080
+int sfd,len;
+struct sockaddr_in server_id;
+sfd=socket(AF_INET,SOCK_STREAM,0);
+if(sfd<0)
+{
+perror("Socket");
+return 0;
+}
+perror("Socket");
 
-int main() {
-    SOCKET clientSock;
-    struct sockaddr_in serverAddr;
-    char buffer[1024];
+server_id.sin_family=AF_INET;
+server_id.sin_port=htons(atoi(argv[1]));
+server_id.sin_addr.s_addr=inet_addr(argv[2]);
+len=sizeof(server_id);
+if(connect(sfd,(struct
+sockaddr*)&server_id,len)<0)
 
-    // Initialize Winsock
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        perror("Error initializing Winsock");
-        exit(EXIT_FAILURE);
-    }
+{
+perror("connect");
+return 0;
+}
+perror("connect");
+char s[20];
+printf("enter string from user\n");
+scanf("%s",s);
+write(sfd,s,strlen(s)+1); //writing data to server
 
-    // Create socket
-    clientSock = socket(AF_INET, SOCK_STREAM, 0);
-    if (clientSock == INVALID_SOCKET) {
-        perror("Error creating socket");
-        WSACleanup(); // Cleanup Winsock
-        exit(EXIT_FAILURE);
-    }
+close(sfd);
 
-    // Set up server address
-    memset(&serverAddr, 0, sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(PORT);
-    if (inet_pton(AF_INET, SERVER_IP, &serverAddr.sin_addr) <= 0) {
-        perror("Invalid server address");
-        closesocket(clientSock);
-        WSACleanup(); // Cleanup Winsock
-        exit(EXIT_FAILURE);
-    }
-
-    // Connect to the server
-    if (connect(clientSock, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        perror("Error connecting to server");
-        closesocket(clientSock);
-        WSACleanup(); // Cleanup Winsock
-        exit(EXIT_FAILURE);
-    }
-
-    while (1) {
-        // Send a "ping" message to the server
-        send(clientSock, "ping", 4, 0);
-        printf("Sent: ping\n");
-
-        // Receive the response from the server
-        ssize_t bytesRead = recv(clientSock, buffer, sizeof(buffer), 0);
-        if (bytesRead <= 0) {
-            perror("Error receiving data from server");
-            break;
-        }
-
-        buffer[bytesRead] = '\0';
-        if (strcmp(buffer, "pong") == 0) {
-            printf("Received: pong\n");
-        }
-
-        Sleep(1000); // Wait for 1 second before sending the next ping (use Sleep for Windows)
-    }
-
-    // Close the client socket
-    closesocket(clientSock);
-    WSACleanup(); // Cleanup Winsock
-    return 0;
 }
