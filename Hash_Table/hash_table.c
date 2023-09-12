@@ -14,12 +14,12 @@ struct KeyValue {
 
 // Define the hash table structure
 struct Hash_table {
-    struct KeyValue* table[TABLE_SIZE];  //Two structures are defined: KeyValue to represent key-value pairs, and Hash_table to represent the hash table itself. Hash_table contains an array of KeyValue pointers and an integer size to track the number of elements in the table.
+    struct KeyValue* table[TABLE_SIZE];  
     int size;
 };
 
 
-
+// Define the hash function
 int hash(const char* key) {
     int index = 0;
     for (int i = 0; key[i] != '\0'; i++) {
@@ -27,7 +27,7 @@ int hash(const char* key) {
     }
     return index % TABLE_SIZE;
 }
-// The hash function calculates a hash index for a given key. It adds up the ASCII values of characters in the key and returns the result modulo TABLE_SIZE to ensure the index is within the valid range.
+
 
 struct KeyValue* createKeyValue(const char* key, const char* value) {
     struct KeyValue* KY_value = (struct KeyValue*)malloc(sizeof(struct KeyValue));
@@ -39,8 +39,7 @@ struct KeyValue* createKeyValue(const char* key, const char* value) {
     return KY_value;
 }
 
-  // The createKeyValue function allocates memory for a new key-value pair, copies the key and value strings, and initializes the next pointer to NULL. It returns a pointer to the new KeyValue structure.
-
+ 
 void inserting_Key(struct Hash_table* h_table, const char* key, const char* value) {
     int index = hash(key);
     struct KeyValue* KY_value = createKeyValue(key, value);
@@ -52,7 +51,6 @@ void inserting_Key(struct Hash_table* h_table, const char* key, const char* valu
     }
 }
 
-// The inserting_Key function inserts a key-value pair into the hash table. It calculates the index using the hash function, creates a new KeyValue structure, links it to the existing list of entries at that index (if any), and updates the hash table's size.
 
 const char* get(const struct Hash_table* h_table, const char* key) {
     int index = hash(key);
@@ -68,7 +66,6 @@ const char* get(const struct Hash_table* h_table, const char* key) {
     return "Key not found";
 }
 
-// The get function getting a value associated with a key from the hash table. It calculates the index, iterates through the linked list at that index, and returns the value when the key is found. If the key is not found, it returns "Key not found."
 
 void removing_Key(struct Hash_table* h_table, const char* key) {
     int index = hash(key);
@@ -93,7 +90,6 @@ void removing_Key(struct Hash_table* h_table, const char* key) {
     }
 }
 
-// The removing_Key function removes a key-value pair from the hash table. It calculates the index, iterates through the linked list at that index, finds the key to be removed, updates the linked list to skip the removed entry, and frees the memory associated with the removed entry.
 
 void resize(struct Hash_table* h_table) {
     struct KeyValue* newTable[TABLE_SIZE * 2];
@@ -117,7 +113,6 @@ void resize(struct Hash_table* h_table) {
     }
 }
 
-// The resize function resizes the hash table when the load factor exceeds a threshold. It creates a new table with double the size of the original, rehashes all existing key-value pairs into the new table, and updates the hash table's size and table pointers.
 
 
 int main() {
